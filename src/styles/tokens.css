@@ -1,0 +1,122 @@
+/* Stxck design tokens v2.
+   Brand palette is unchanged (Sambucus, Yellow, White, Sky). Neutrals are a proper
+   ramp built around #101828, and every component reads from these tokens. */
+:root {
+  /* Brand */
+  --sambucus: #101828;
+  --yellow: #fdc700;
+  --yellow-hover: #ffd633;
+  --yellow-ink: #1a1400;
+  --white: #ffffff;
+  --sky: #00d3f3;
+
+  /* Neutral ramp */
+  --gray-950: #0b111d;
+  --gray-900: #101828;
+  --gray-875: #131b2b;
+  --gray-850: #161f30;
+  --gray-800: #1b2436;
+  --gray-750: #212b3e;
+  --gray-700: #2b3549;
+  --gray-600: #3d475c;
+  --gray-500: #667085;
+  --gray-400: #98a2b3;
+  --gray-300: #cfd5de;
+  --gray-100: #f2f4f7;
+
+  /* Semantic surfaces */
+  --bg: var(--gray-900);
+  --bg-sunken: var(--gray-950);
+  --surface: var(--gray-875);
+  --surface-raised: var(--gray-850);
+  --surface-hover: var(--gray-800);
+  --surface-active: var(--gray-750);
+  --overlay: #182133;
+
+  /* Text */
+  --text-1: #f5f7fa;
+  --text-2: #b3bcc9;
+  --text-3: #7d8799;
+  --text-4: #566072;
+  --text-inverse: #0b111d;
+
+  /* Lines */
+  --line: rgba(255, 255, 255, 0.06);
+  --line-2: rgba(255, 255, 255, 0.1);
+  --line-3: rgba(255, 255, 255, 0.16);
+
+  /* Signals */
+  --up: #3ddc97;
+  --up-soft: rgba(61, 220, 151, 0.12);
+  --down: #f97066;
+  --down-soft: rgba(249, 112, 102, 0.12);
+  --warn: #fdb022;
+  --warn-soft: rgba(253, 176, 34, 0.12);
+  --info: var(--sky);
+  --info-soft: rgba(0, 211, 243, 0.1);
+  --gold: #f5a524;
+  --focus: rgba(0, 211, 243, 0.55);
+
+  /* Legacy aliases (kept so older rules resolve to the new scale) */
+  --window: var(--bg);
+  --surface-1: rgba(255, 255, 255, 0.025);
+  --surface-2: rgba(255, 255, 255, 0.045);
+  --surface-3: rgba(255, 255, 255, 0.075);
+  --line-strong: var(--line-2);
+  --card: var(--surface);
+  --tint-sky: rgba(0, 211, 243, 0.05);
+  --tint-yellow: rgba(253, 199, 0, 0.045);
+  --tint-green: rgba(61, 220, 151, 0.045);
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-full: 999px;
+  --radius-sm: var(--r-md);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+
+  /* Spacing (4px grid) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* Type */
+  --font: 'Satoshi', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-micro: 11px;
+  --fs-caption: 12px;
+  --fs-small: 13px;
+  --fs-body: 14px;
+  --fs-body-lg: 15px;
+  --fs-h4: 17px;
+  --fs-h3: 20px;
+  --fs-h2: 24px;
+  --fs-h1: 32px;
+  --fs-display: 56px;
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh-body: 1.55;
+
+  /* Elevation — only overlays float; cards are flat with hairlines */
+  --shadow-overlay: 0 0 0 1px var(--line-2), 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -8px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 0 0 1px var(--line-2), 0 12px 32px -8px rgba(0, 0, 0, 0.55);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+
+  color-scheme: dark;
+}

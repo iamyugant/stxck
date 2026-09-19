@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="Stxck — your stock analyst">
+  <rect width="1200" height="300" rx="24" fill="#101828"/>
+  <g opacity="0.35" fill="#00D3F3">
+    <rect x="980" y="238" width="4" height="4"/><rect x="1010" y="250" width="3" height="3"/><rect x="1040" y="232" width="4" height="4"/>
+    <rect x="1070" y="256" width="3" height="3"/><rect x="1100" y="242" width="4" height="4"/><rect x="1130" y="262" width="3" height="3"/>
+    <rect x="1160" y="236" width="4" height="4"/><rect x="950" y="262" width="3" height="3"/><rect x="920" y="250" width="3" height="3"/>
+  </g>
+  <g transform="translate(80 78) scale(0.72)">
+    <rect x="18" y="134" width="48" height="48" rx="9" fill="#FDC700"/>
+    <rect x="76" y="134" width="48" height="48" rx="9" fill="#FDC700"/>
+    <rect x="76" y="76" width="48" height="48" rx="9" fill="#FDC700"/>
+    <rect x="134" y="134" width="48" height="48" rx="9" fill="#FDC700"/>
+    <rect x="134" y="76" width="48" height="48" rx="9" fill="#FDC700"/>
+    <rect x="142" y="8" width="48" height="48" rx="9" fill="#00D3F3"/>
+  </g>
+  <text x="252" y="170" font-family="Satoshi, 'Helvetica Neue', Arial, sans-serif" font-size="96" font-weight="700" letter-spacing="-4" fill="#F5F7FA">St<tspan fill="#FDC700">x</tspan>ck</text>
+  <text x="256" y="220" font-family="Satoshi, 'Helvetica Neue', Arial, sans-serif" font-size="28" fill="#7D8799">Your stock analyst — live data, clear answers, paper trading.</text>
+</svg>
