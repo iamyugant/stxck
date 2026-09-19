@@ -1,16 +1,14 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import TopBar from './components/shell/TopBar.jsx'
 import Icon from './components/Icon.jsx'
-import IconRail from './components/shell/IconRail.jsx'
-import { AccountButton, MobileDrawer } from './components/shell/Account.jsx'
-import { isTyping, MOD } from './lib/keys.js'
+import { AccountButton, IconRail, MobileDrawer } from './components/shell/Nav.jsx'
 import { useAuth } from './lib/auth.jsx'
-import { LogoLoader } from './components/ui/States.jsx'
-import { OfflineBanner } from './components/ui/Live.jsx'
+import { LogoLoader } from './components/Logos.jsx'
+import { OfflineBanner } from './components/Live.jsx'
 import { navigate } from './lib/router.js'
 import Composer from './components/shell/Composer.jsx'
 import PixelField from './components/shell/PixelField.jsx'
-import Hero from './components/home/Hero.jsx'
+import Hero from './components/chat/Hero.jsx'
 import { AssistantMessage, UserBubble } from './components/chat/Messages.jsx'
 import InsightRail from './components/rails/InsightRail.jsx'
 import SummaryRail from './components/rails/SummaryRail.jsx'
@@ -32,6 +30,8 @@ const CommandPalette = lazy(() => import('./components/shell/CommandPalette.jsx'
 const CookieModal = lazy(() => import('./components/modals/InfoModals.jsx').then((m) => ({ default: m.CookieModal })))
 
 const WIDE = '(min-width: 1200px)'
+const MOD = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl'
+const isTyping = (el) => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
 
 export default function App() {
   const { user, logout } = useAuth()
@@ -65,8 +65,8 @@ export default function App() {
   const account = useAccount({ notify })
   const { watchlist, portfolio, toggleWatch, addAlert } = account
   const openModal = useCallback((type, props = {}) => setModal({ type, props }), [])
+  const closeModal = () => setModal(null)
 
-  /* ------------------------------------------------------------------ chat */
   const ctxRef = useRef(null)
   useEffect(() => {
     ctxRef.current = {
@@ -116,7 +116,6 @@ export default function App() {
     newChatRef.current = newChat
   })
 
-  /* ------------------------------------------------------------- watchlist */
   const watchKey = watchlist.join(',')
   useEffect(() => {
     let alive = true
@@ -129,7 +128,6 @@ export default function App() {
     }
   }, [watchKey])
 
-  /* ------------------------------------------------------- summary rail */
   const summary = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       const card = messages[i].parts?.find((p) => p.type === 'card' && p.card.type === 'stock')?.card
@@ -142,7 +140,6 @@ export default function App() {
   const railTab = railChoice.symbol === summarySymbol ? railChoice.tab : summarySymbol ? 'summary' : 'insight'
   const setRailTab = (tab) => setRailChoice({ symbol: summarySymbol, tab })
 
-  /* ------------------------------------------------------------ scrolling */
   const scrollRef = useRef(null)
   const innerRef = useRef(null)
   const stickRef = useRef(true)
@@ -177,7 +174,6 @@ export default function App() {
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }
 
-  /* -------------------------------------------------- shortcuts & title */
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -229,6 +225,14 @@ export default function App() {
     await logout()
     navigate('/login', { replace: true })
   }
+  const openChat = (id) => {
+    chat.openChat(id)
+    setView('chat')
+  }
+  const openChart = (symbol) => {
+    setChartSymbol(symbol)
+    setView('charts')
+  }
   const onNav = (id) => {
     if (id === 'new') newChat()
     else if (id === 'settings') openModal('settings')
@@ -276,10 +280,7 @@ export default function App() {
                   watchlist={watchlist}
                   onToggleWatch={toggleWatch}
                   onAnalyze={analyze}
-                  onChart={(s) => {
-                    setChartSymbol(s)
-                    setView('charts')
-                  }}
+                  onChart={openChart}
                 />
               </div>
             )}
@@ -314,10 +315,7 @@ export default function App() {
                 <HistoryView
                   chats={chat.chats}
                   activeId={chat.active?.id}
-                  onOpen={(id) => {
-                    chat.openChat(id)
-                    setView('chat')
-                  }}
+                  onOpen={openChat}
                   onDelete={(id) => {
                     chat.deleteChat(id)
                     notify('Conversation deleted')
@@ -414,10 +412,7 @@ export default function App() {
         active={navActive}
         onNav={onNav}
         chats={chat.chats}
-        onOpenChat={(id) => {
-          chat.openChat(id)
-          setView('chat')
-        }}
+        onOpenChat={openChat}
         onSettings={() => openModal('settings')}
         onLogout={signOut}
       />
@@ -429,25 +424,19 @@ export default function App() {
             actions={paletteActions}
             chats={chat.chats}
             onAsk={ask}
-            onTicker={(s) => {
-              setChartSymbol(s)
-              setView('charts')
-            }}
-            onOpenChat={(id) => {
-              chat.openChat(id)
-              setView('chat')
-            }}
+            onTicker={openChart}
+            onOpenChat={openChat}
           />
         )}
         {modal?.type === 'trade' && (
-          <TradeTicket initial={modal.props} portfolio={portfolio} onExecute={account.executeTrade} onClose={() => setModal(null)} />
+          <TradeTicket initial={modal.props} portfolio={portfolio} onExecute={account.executeTrade} onClose={closeModal} />
         )}
         {modal?.type === 'simulate' && (
           <SimulateModal
             initialSymbol={modal.props.symbol}
-            onClose={() => setModal(null)}
+            onClose={closeModal}
             onAsk={(t) => {
-              setModal(null)
+              closeModal()
               ask(t)
             }}
           />
@@ -459,7 +448,7 @@ export default function App() {
             alerts={account.alerts}
             onAdd={addAlert}
             onRemove={account.removeAlert}
-            onClose={() => setModal(null)}
+            onClose={closeModal}
           />
         )}
         {modal?.type === 'settings' && (
@@ -475,12 +464,12 @@ export default function App() {
               notify('All chats deleted')
             }}
             onResetPortfolio={account.resetPortfolio}
-            onClose={() => setModal(null)}
+            onClose={closeModal}
             notify={notify}
           />
         )}
-        {modal?.type === 'upgrade' && <UpgradeModal onClose={() => setModal(null)} notify={notify} />}
-        {modal?.type === 'cookies' && <CookieModal onClose={() => setModal(null)} notify={notify} />}
+        {modal?.type === 'upgrade' && <UpgradeModal onClose={closeModal} notify={notify} />}
+        {modal?.type === 'cookies' && <CookieModal onClose={closeModal} notify={notify} />}
       </Suspense>
 
       {toast && (

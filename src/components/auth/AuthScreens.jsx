@@ -2,14 +2,18 @@ import { useState } from 'react'
 import Icon from '../Icon.jsx'
 import { BrandMark, ProductPreview } from '../landing/Brand.jsx'
 import { useTape } from '../../lib/tape.js'
-import { Notice } from '../ui/States.jsx'
+import { Notice } from '../States.jsx'
 import { PasswordField, SubmitButton, TextField } from './Fields.jsx'
 import { useAuth } from '../../lib/auth.jsx'
 import { Link, navigate, useQuery } from '../../lib/router.js'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-// Same rule the server enforces: letters plus a number or symbol.
-const PW_MIX = /^(?=.*[a-zA-Z])(?=.*[^a-zA-Z]).+$/
+
+// Mirrors the server's rule: at least 8 characters, letters plus a number or symbol.
+function passwordError(pw) {
+  if (pw.length < 8) return 'Use at least 8 characters'
+  if (!/^(?=.*[a-zA-Z])(?=.*[^a-zA-Z]).+$/.test(pw)) return 'Mix letters with numbers or symbols'
+}
 
 function AuthLayout({ children }) {
   const tape = useTape()
@@ -51,7 +55,7 @@ function AuthLayout({ children }) {
   )
 }
 
-/** Move focus to the first invalid field after React paints the errors. */
+// Wait a frame so React has painted the errors before moving focus.
 const focusFirstError = (e) => {
   const form = e.currentTarget
   requestAnimationFrame(() => form.querySelector('[aria-invalid="true"], .check.has-error input')?.focus())
@@ -68,7 +72,6 @@ function FormError({ message }) {
   )
 }
 
-/* ------------------------------------------------------------------ login */
 export function LoginScreen() {
   const { login } = useAuth()
   const next = useQuery().get('next')
@@ -145,7 +148,7 @@ export function LoginScreen() {
         <label className="check">
           <input type="checkbox" checked={form.remember} onChange={(e) => setForm({ ...form, remember: e.target.checked })} />
           <span className="check__box" aria-hidden="true">
-            <Icon name="check" size={12} stroke={2.6} />
+            <Icon name="check" size={12} />
           </span>
           Keep me signed in for 30 days
         </label>
@@ -158,7 +161,6 @@ export function LoginScreen() {
   )
 }
 
-/* ----------------------------------------------------------------- signup */
 export function SignupScreen() {
   const { signup } = useAuth()
   const [form, setForm] = useState({ name: '', email: '', password: '', agree: false })
@@ -171,8 +173,8 @@ export function SignupScreen() {
     const errs = {}
     if (!f.name.trim()) errs.name = 'Tell us your name'
     if (!EMAIL_RE.test(f.email.trim())) errs.email = 'Enter a valid email address'
-    if (f.password.length < 8) errs.password = 'Use at least 8 characters'
-    else if (!PW_MIX.test(f.password)) errs.password = 'Mix letters with numbers or symbols'
+    const pwError = passwordError(f.password)
+    if (pwError) errs.password = pwError
     if (!f.agree) errs.agree = 'Please confirm to continue'
     return errs
   }
@@ -229,7 +231,7 @@ export function SignupScreen() {
         <label className={`check ${shown('agree') ? 'has-error' : ''}`}>
           <input type="checkbox" checked={form.agree} onChange={(e) => setForm({ ...form, agree: e.target.checked })} />
           <span className="check__box" aria-hidden="true">
-            <Icon name="check" size={12} stroke={2.6} />
+            <Icon name="check" size={12} />
           </span>
           I understand Stxck is for research and education, not financial advice.
         </label>
@@ -242,7 +244,6 @@ export function SignupScreen() {
   )
 }
 
-/* ----------------------------------------------------------------- forgot */
 export function ForgotScreen() {
   const { forgot } = useAuth()
   const [email, setEmail] = useState('')
@@ -301,7 +302,6 @@ export function ForgotScreen() {
   )
 }
 
-/* ------------------------------------------------------------------ reset */
 export function ResetScreen() {
   const { reset } = useAuth()
   const token = useQuery().get('token') || ''
@@ -314,8 +314,8 @@ export function ResetScreen() {
   const submit = async (e) => {
     e.preventDefault()
     const errs = {}
-    if (pw.length < 8) errs.password = 'Use at least 8 characters'
-    else if (!PW_MIX.test(pw)) errs.password = 'Mix letters with numbers or symbols'
+    const pwError = passwordError(pw)
+    if (pwError) errs.password = pwError
     if (confirm !== pw) errs.confirm = 'Passwords don’t match'
     setErrors(errs)
     if (Object.keys(errs).length || !token) return focusFirstError(e)

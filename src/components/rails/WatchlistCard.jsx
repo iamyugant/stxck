@@ -2,8 +2,8 @@ import Icon, { Trend } from '../Icon.jsx'
 import { CompanyLogo } from '../Logos.jsx'
 import Sparkline from '../Sparkline.jsx'
 import { fmt, fmtSigned } from '../../lib/format.js'
-import { Skeleton } from '../ui/States.jsx'
-import { Flash } from '../ui/Live.jsx'
+import { Skeleton } from '../States.jsx'
+import { Flash } from '../Live.jsx'
 
 export default function WatchlistCard({ item, starred, onStar, onOpen, compact = false }) {
   const up = item.change >= 0
@@ -23,7 +23,7 @@ export default function WatchlistCard({ item, starred, onStar, onOpen, compact =
             aria-pressed={starred}
             onClick={onStar}
           >
-            <Icon name="star" size={16} stroke={1.4} />
+            <Icon name="star" size={16} />
           </button>
         )}
       </div>

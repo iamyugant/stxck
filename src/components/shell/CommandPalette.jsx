@@ -2,41 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from '../Icon.jsx'
 import { CompanyLogo } from '../Logos.jsx'
-import { Spinner } from '../ui/States.jsx'
-import { api } from '../../lib/api.js'
+import { Spinner } from '../States.jsx'
+import { useTickerSearch } from '../../lib/hooks.js'
 
-/**
- * ⌘K palette. `actions` are static commands; tickers come from live search;
- * any free text can be sent straight to the analyst.
- */
+// Actions are static commands, tickers come from live search, and any free text can go straight to the analyst.
 export default function CommandPalette({ onClose, actions, chats, onAsk, onTicker, onOpenChat }) {
   const [q, setQ] = useState('')
-  const [tickers, setTickers] = useState([])
-  const [loading, setLoading] = useState(false)
   const [active, setActive] = useState(0)
+  const { results: tickers, loading } = useTickerSearch(q, 5, 160)
   const inputRef = useRef(null)
   const listRef = useRef(null)
-
-  useEffect(() => {
-    const query = q.trim()
-    if (query.length < 1) return
-    let alive = true
-    const t = setTimeout(async () => {
-      setLoading(true)
-      try {
-        const r = await api.search(query)
-        if (alive) setTickers(r.quotes.slice(0, 5))
-      } catch {
-        if (alive) setTickers([])
-      } finally {
-        if (alive) setLoading(false)
-      }
-    }, 160)
-    return () => {
-      alive = false
-      clearTimeout(t)
-    }
-  }, [q])
 
   const items = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -45,9 +20,8 @@ export default function CommandPalette({ onClose, actions, chats, onAsk, onTicke
     const acts = actions.filter((a) => !needle || a.label.toLowerCase().includes(needle) || a.keywords?.includes(needle))
     out.push(...acts.map((a) => ({ group: 'Go to', ...a })))
     if (needle) {
-      const shown = tickers
       out.push(
-        ...shown.map((t) => ({
+        ...tickers.map((t) => ({
           group: 'Tickers',
           id: `t-${t.symbol}`,
           symbol: t.symbol,

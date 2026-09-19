@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { useAuth } from './lib/auth.jsx'
 import { Link, navigate, usePath } from './lib/router.js'
-import { LogoLoader } from './components/ui/States.jsx'
+import { LogoLoader } from './components/Logos.jsx'
 import Landing from './components/landing/Landing.jsx'
 import { ForgotScreen, LoginScreen, ResetScreen, SignupScreen } from './components/auth/AuthScreens.jsx'
 

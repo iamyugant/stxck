@@ -2,15 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import Icon from '../Icon.jsx'
 import { CompanyLogo } from '../Logos.jsx'
 import { api } from '../../lib/api.js'
-import { STARTING_CASH } from '../../lib/useAccount.js'
-import { fmt, fmtPct } from '../../lib/format.js'
-import { EmptyState } from '../ui/States.jsx'
-import { Flash } from '../ui/Live.jsx'
+import { STARTING_CASH } from '../../lib/trading.js'
+import { fmt, fmtPct, fmtQty, fmtUsdSigned } from '../../lib/format.js'
+import { EmptyState } from '../States.jsx'
+import { Flash } from '../Live.jsx'
 import Sparkline from '../Sparkline.jsx'
 import SymbolSearch from '../SymbolSearch.jsx'
 
 const PALETTE = ['#00d3f3', '#fdc700', '#3ddc97', '#a78bfa', '#f07167', '#60a5fa', '#f59e0b', '#34d399']
-const qtyFmt = (q) => fmt(q, q % 1 ? 4 : 0).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
 
 export default function PortfolioView({ portfolio, onOpen, onAnalyze, onReset, equityHistory = [], onRecordEquity, alerts = [], onRemoveAlert }) {
   const symbols = Object.keys(portfolio.positions)
@@ -92,20 +91,20 @@ export default function PortfolioView({ portfolio, onOpen, onAnalyze, onReset, e
           <span className="muted-label">Total equity</span>
           <span className="kpi__value">${fmt(equity)}</span>
           <span className={totalPnl >= 0 ? 'is-up' : 'is-down'}>
-            {totalPnl >= 0 ? '+' : '-'}${fmt(Math.abs(totalPnl))} ({fmtPct((totalPnl / STARTING_CASH) * 100)}) all time
+            {fmtUsdSigned(totalPnl)} ({fmtPct((totalPnl / STARTING_CASH) * 100)}) all time
           </span>
         </div>
         <div className="kpi">
           <span className="muted-label">Today</span>
           <span className={`kpi__value ${dayPnl >= 0 ? 'is-up' : 'is-down'}`}>
-            {dayPnl >= 0 ? '+' : '-'}${fmt(Math.abs(dayPnl))}
+            {fmtUsdSigned(dayPnl)}
           </span>
           <span className="muted">on open positions</span>
         </div>
         <div className="kpi">
           <span className="muted-label">Buying power</span>
           <span className="kpi__value">${fmt(portfolio.cash)}</span>
-          <span className="muted">Realized P&L {realized >= 0 ? '+' : '-'}${fmt(Math.abs(realized))}</span>
+          <span className="muted">Realized P&L {fmtUsdSigned(realized)}</span>
         </div>
       </div>
 
@@ -171,17 +170,17 @@ export default function PortfolioView({ portfolio, onOpen, onAnalyze, onReset, e
                       </span>
                     </span>
                   </th>
-                  <td className="num">{qtyFmt(r.quantity)}</td>
+                  <td className="num">{fmtQty(r.quantity)}</td>
                   <td className="num">${fmt(r.avgCost)}</td>
                   <td className="num">
                     <Flash value={r.price}>${fmt(r.price)}</Flash>
                   </td>
                   <td className="num">${fmt(r.value)}</td>
                   <td className={`num ${r.dayPnl >= 0 ? 'is-up' : 'is-down'}`}>
-                    {r.dayPnl >= 0 ? '+' : '-'}${fmt(Math.abs(r.dayPnl))}
+                    {fmtUsdSigned(r.dayPnl)}
                   </td>
                   <td className={`num ${r.pnl >= 0 ? 'is-up' : 'is-down'}`}>
-                    {r.pnl >= 0 ? '+' : '-'}${fmt(Math.abs(r.pnl))}
+                    {fmtUsdSigned(r.pnl)}
                     <span className="cell-sub">{fmtPct(r.pnlPct)}</span>
                   </td>
                   <td className="num row-actions">
@@ -220,12 +219,12 @@ export default function PortfolioView({ portfolio, onOpen, onAnalyze, onReset, e
                 <tr key={t.id}>
                   <td className="muted">{new Date(t.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
                   <td>
-                    <span className={t.side === 'buy' ? 'is-up' : 'is-down'}>{t.side === 'buy' ? 'Buy' : 'Sell'}</span> {qtyFmt(t.quantity)} {t.symbol}
+                    <span className={t.side === 'buy' ? 'is-up' : 'is-down'}>{t.side === 'buy' ? 'Buy' : 'Sell'}</span> {fmtQty(t.quantity)} {t.symbol}
                   </td>
                   <td className="num">${fmt(t.price)}</td>
                   <td className="num">${fmt(t.price * t.quantity)}</td>
                   <td className={`num ${t.realized == null ? 'muted' : t.realized >= 0 ? 'is-up' : 'is-down'}`}>
-                    {t.realized == null ? '—' : `${t.realized >= 0 ? '+' : '-'}$${fmt(Math.abs(t.realized))}`}
+                    {t.realized == null ? '—' : fmtUsdSigned(t.realized)}
                   </td>
                 </tr>
               ))}
@@ -266,7 +265,7 @@ function Performance({ history, equity }) {
           <p className="muted-label">Since {since}</p>
         </div>
         <span className={`perf__delta ${up ? 'is-up' : 'is-down'}`}>
-          {up ? '+' : '-'}${fmt(Math.abs(change))} · {fmtPct(pct)}
+          {fmtUsdSigned(change)} · {fmtPct(pct)}
         </span>
       </div>
       {points.length > 1 ? (

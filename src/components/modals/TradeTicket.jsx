@@ -3,10 +3,9 @@ import Modal from '../Modal.jsx'
 import { CompanyLogo } from '../Logos.jsx'
 import SymbolSearch from '../SymbolSearch.jsx'
 import { api } from '../../lib/api.js'
-import { fmt } from '../../lib/format.js'
-import { Notice } from '../ui/States.jsx'
+import { fmt, fmtQty } from '../../lib/format.js'
+import { Notice } from '../States.jsx'
 
-/** Paper-trading order ticket. Market orders fill at the live quote on confirm. */
 export default function TradeTicket({ initial, portfolio, onExecute, onClose }) {
   const [symbol, setSymbol] = useState(initial?.symbol || '')
   const [side, setSide] = useState(initial?.side || 'buy')
@@ -14,7 +13,6 @@ export default function TradeTicket({ initial, portfolio, onExecute, onClose }) 
   const [amount, setAmount] = useState(initial?.quantity ? String(initial.quantity) : '')
   const [quote, setQuote] = useState(null)
   const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!symbol) return
@@ -39,9 +37,7 @@ export default function TradeTicket({ initial, portfolio, onExecute, onClose }) 
   const valid = symbol && price && shares > 0
 
   const submit = () => {
-    setSubmitting(true)
     const res = onExecute({ symbol, side, quantity: +shares.toFixed(6), price })
-    setSubmitting(false)
     if (res.ok) onClose()
     else setError(res.error)
   }
@@ -56,8 +52,8 @@ export default function TradeTicket({ initial, portfolio, onExecute, onClose }) 
           <button className="btn btn--ghost" onClick={onClose}>
             Cancel
           </button>
-          <button className={`btn ${side === 'buy' ? 'btn--up' : 'btn--down'}`} disabled={!valid || submitting} onClick={submit}>
-            {side === 'buy' ? 'Buy' : 'Sell'} {shares > 0 ? fmt(shares, shares % 1 ? 4 : 0).replace(/\.?0+$/, '') : ''} {symbol}
+          <button className={`btn ${side === 'buy' ? 'btn--up' : 'btn--down'}`} disabled={!valid} onClick={submit}>
+            {side === 'buy' ? 'Buy' : 'Sell'} {shares > 0 ? fmtQty(shares) : ''} {symbol}
           </button>
         </>
       }

@@ -68,7 +68,7 @@ export default function Welcome() {
                     <span className="style-card__title">{s.title}</span>
                     <span className="style-card__body">{s.body}</span>
                     <span className="style-card__check" aria-hidden="true">
-                      <Icon name="check" size={12} stroke={2.6} />
+                      <Icon name="check" size={12} />
                     </span>
                   </button>
                 )
@@ -96,7 +96,7 @@ export default function Welcome() {
                   <button key={s} className={`pick ${on ? 'is-on' : ''}`} aria-pressed={on} onClick={() => toggle(setWatch, s)}>
                     <CompanyLogo symbol={s} size={24} />
                     {s}
-                    <Icon name={on ? 'check' : 'plus'} size={13} stroke={2.2} />
+                    <Icon name={on ? 'check' : 'plus'} size={13} />
                   </button>
                 )
               })}

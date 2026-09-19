@@ -118,10 +118,11 @@ export async function runDemo(text, emit, signal) {
   }
 
   if (intent.kind === 'compare') {
-    emit('tool', { id: 'demo-cmp', label: `Comparing ${intent.symbols.join(', ')}`, state: 'running' })
+    const label = `Comparing ${intent.symbols.join(', ')}`
+    emit('tool', { id: 'demo-cmp', label, state: 'running' })
     try {
       const { rows } = await api.compare(intent.symbols.slice(0, 4))
-      emit('tool', { id: 'demo-cmp', label: `Comparing ${intent.symbols.join(', ')}`, state: 'done' })
+      emit('tool', { id: 'demo-cmp', label, state: 'done' })
       emit('card', { id: 'demo-cmp', card: { type: 'compare', rows } })
       const best = [...rows].sort((a, b) => b.y1 - a.y1)[0]
       await streamText(emit, `Over the past year, **${best.name}** led this group with a ${fmt(best.y1)}% return. Higher returns came with higher volatility — compare the "Vol" column before reading too much into the winner.`, signal)
@@ -132,10 +133,11 @@ export async function runDemo(text, emit, signal) {
   }
 
   if (intent.kind === 'simulate') {
-    emit('tool', { id: 'demo-sim', label: `Simulating $${intent.amount} in ${intent.symbol}`, state: 'running' })
+    const label = `Simulating $${intent.amount} in ${intent.symbol}`
+    emit('tool', { id: 'demo-sim', label, state: 'running' })
     try {
       const sim = await api.simulate({ symbol: intent.symbol, amount: intent.amount, years: 5 })
-      emit('tool', { id: 'demo-sim', label: `Simulating $${intent.amount} in ${intent.symbol}`, state: 'done' })
+      emit('tool', { id: 'demo-sim', label, state: 'done' })
       emit('card', { id: 'demo-sim', card: { type: 'simulation', data: sim } })
       await streamText(emit, `$${fmt(sim.amount, 0)} invested five years ago would be worth about **$${fmt(sim.finalValue, 0)}** today (${fmt(sim.cagrPct, 1)}% a year), after a worst drawdown of ${fmt(sim.maxDrawdownPct, 1)}%. The forward range is illustrative, based on historical volatility.`, signal)
     } catch {
@@ -145,9 +147,10 @@ export async function runDemo(text, emit, signal) {
   }
 
   if (intent.kind === 'sentiment') {
-    emit('tool', { id: 'demo-mkt', label: 'Reading the tape across indexes and sectors', state: 'running' })
+    const label = 'Reading the tape across indexes and sectors'
+    emit('tool', { id: 'demo-mkt', label, state: 'running' })
     const m = await getMarket()
-    emit('tool', { id: 'demo-mkt', label: 'Reading the tape across indexes and sectors', state: 'done' })
+    emit('tool', { id: 'demo-mkt', label, state: 'done' })
     const items = m.indexes.filter((i) => i.symbol !== '^VIX').slice(0, 3)
     emit('card', { id: 'demo-mkt', card: { type: 'market', items, sectors: m.sectors } })
     const avg = items.reduce((s, i) => s + i.changePct, 0) / items.length

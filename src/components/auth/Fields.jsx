@@ -33,7 +33,6 @@ export function TextField({ label, error, hint, right, className = '', ...input 
   )
 }
 
-/** Score 0–4 from length and character variety. */
 function passwordScore(pw) {
   if (!pw) return 0
   let s = 0

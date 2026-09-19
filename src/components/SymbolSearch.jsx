@@ -1,52 +1,20 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import Icon from './Icon.jsx'
-import { api } from '../lib/api.js'
+import { useDismiss, useTickerSearch } from '../lib/hooks.js'
 
-/** Ticker autocomplete backed by /api/search. Calls onPick(symbol, item). */
 export default function SymbolSearch({ onPick, placeholder = 'Search ticker or company', autoFocus, className = '', compact }) {
   const [q, setQ] = useState('')
-  const [items, setItems] = useState([])
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const { results: items, loading } = useTickerSearch(q, 7)
   const listId = useId()
   const wrapRef = useRef(null)
-
-  useEffect(() => {
-    const query = q.trim()
-    if (!query) return
-    let alive = true
-    const t = setTimeout(async () => {
-      setLoading(true)
-      try {
-        const r = await api.search(query)
-        if (alive) {
-          setItems(r.quotes.slice(0, 7))
-          setActive(0)
-          setOpen(true)
-        }
-      } catch {
-        if (alive) setItems([])
-      } finally {
-        if (alive) setLoading(false)
-      }
-    }, 180)
-    return () => {
-      alive = false
-      clearTimeout(t)
-    }
-  }, [q])
-
-  useEffect(() => {
-    const onDown = (e) => !wrapRef.current?.contains(e.target) && setOpen(false)
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [])
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss(open, close, wrapRef)
 
   const pick = (item) => {
     onPick(item.symbol, item)
     setQ('')
-    setItems([])
     setOpen(false)
   }
 
@@ -64,10 +32,8 @@ export default function SymbolSearch({ onPick, placeholder = 'Search ticker or c
         aria-autocomplete="list"
         onChange={(e) => {
           setQ(e.target.value)
-          if (!e.target.value.trim()) {
-            setItems([])
-            setOpen(false)
-          }
+          setActive(0)
+          setOpen(Boolean(e.target.value.trim()))
         }}
         onFocus={() => items.length && setOpen(true)}
         onKeyDown={(e) => {
@@ -81,7 +47,7 @@ export default function SymbolSearch({ onPick, placeholder = 'Search ticker or c
             e.preventDefault()
             if (items[active]) pick(items[active])
             else if (/^[\^A-Za-z0-9.=-]{1,15}$/.test(q.trim())) pick({ symbol: q.trim().toUpperCase() })
-          } else if (e.key === 'Escape') setOpen(false)
+          }
         }}
       />
       {loading && <span className="spinner" aria-hidden="true" />}

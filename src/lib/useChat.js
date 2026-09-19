@@ -18,7 +18,6 @@ function readAs(file, mode) {
   })
 }
 
-/** Convert picked files into API payloads; unsupported types become a note. */
 async function encodeFiles(files) {
   const out = []
   const notes = []

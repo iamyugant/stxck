@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useOnline } from '../../lib/online.js'
-import { marketStatus } from '../../lib/marketHours.js'
+import { useOnline } from '../lib/hooks.js'
+import { marketStatus } from '../lib/marketHours.js'
 
-/** Wraps a number and briefly tints it green/red when the value ticks up/down. */
 export function Flash({ value, children, className = '' }) {
   const [snap, setSnap] = useState({ value, dir: null, n: 0 })
   // Derive the direction during render when the value changes (no effect round-trip).
@@ -22,7 +21,6 @@ export function Flash({ value, children, className = '' }) {
   )
 }
 
-/** Market session pill, refreshed every 30 seconds. */
 export function MarketStatus() {
   const [status, setStatus] = useState(() => marketStatus())
   useEffect(() => {

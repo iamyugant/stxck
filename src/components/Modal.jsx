@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from './Icon.jsx'
 
-/** Accessible dialog: focus trap-lite, Escape to close, click-outside to close. */
 export default function Modal({ title, subtitle, onClose, children, width = 440, footer }) {
   const ref = useRef(null)
   useEffect(() => {

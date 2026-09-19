@@ -5,7 +5,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import express from 'express'
 import { z } from 'zod'
-import { sendPasswordReset } from './mailer.js'
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR || 'data')
 const USERS_FILE = path.join(DATA_DIR, 'users.json')
@@ -16,7 +15,6 @@ const isProd = process.env.NODE_ENV === 'production'
 
 fs.mkdirSync(DATA_DIR, { recursive: true })
 
-/* ------------------------------------------------------------------ secret */
 function loadSecret() {
   if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET
   const file = path.join(DATA_DIR, '.session-secret')
@@ -30,7 +28,6 @@ function loadSecret() {
 }
 const SECRET = loadSecret()
 
-/* ------------------------------------------------------------------- store */
 const users = new Map()
 try {
   for (const u of JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'))) users.set(u.id, u)
@@ -49,7 +46,6 @@ function persist() {
 }
 const byEmail = (email) => [...users.values()].find((u) => u.email === email)
 
-/* ---------------------------------------------------------------- hashing */
 const scrypt = (pw, salt) =>
   new Promise((resolve, reject) =>
     crypto.scrypt(pw, salt, 64, { N: 16384, r: 8, p: 1 }, (err, key) => (err ? reject(err) : resolve(key))),
@@ -71,7 +67,6 @@ async function verifyPassword(pw, stored) {
 // Equalize timing for unknown emails.
 const DUMMY_HASH = await hashPassword(crypto.randomBytes(12).toString('hex'))
 
-/* ---------------------------------------------------------------- sessions */
 const sign = (data) => crypto.createHmac('sha256', SECRET).update(data).digest('base64url')
 
 function issueSession(res, user, remember) {
@@ -121,7 +116,6 @@ const publicUser = (u) => ({
   interests: u.interests || [],
 })
 
-/* -------------------------------------------------------------- middleware */
 export function attachUser(req, res, next) {
   req.user = readSession(req)
   next()
@@ -149,7 +143,6 @@ export function sameOrigin(req, res, next) {
   next()
 }
 
-/* --------------------------------------------------------------- throttling */
 const attempts = new Map()
 function throttled(key, limit = 8, windowMs = 15 * 60e3) {
   const now = Date.now()
@@ -163,7 +156,6 @@ setInterval(() => {
   for (const [k, v] of attempts) if (!v.some((t) => now - t < 3600e3)) attempts.delete(k)
 }, 600e3).unref()
 
-/* ------------------------------------------------------------------ schemas */
 const Email = z.string().trim().toLowerCase().email('Enter a valid email address').max(254)
 const Password = z
   .string()
@@ -181,7 +173,29 @@ function parse(schema, body, res) {
   return null
 }
 
-/* ------------------------------------------------------------------- routes */
+// Without RESEND_API_KEY + MAIL_FROM the link is logged, so resets still work in development.
+async function sendPasswordReset(user, link) {
+  const subject = 'Reset your Stxck password'
+  const text = `Hi ${user.name},\n\nUse this link to reset your Stxck password. It expires in 1 hour.\n\n${link}\n\nIf you didn't request this, you can ignore this email.`
+  const key = process.env.RESEND_API_KEY
+  const from = process.env.MAIL_FROM
+  if (!key || !from) {
+    console.log(`[mail] (not sent: no RESEND_API_KEY/MAIL_FROM) to=${user.email} subject="${subject}"\n${link}`)
+    return
+  }
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from, to: user.email, subject, text }),
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!res.ok) console.error('[mail] send failed', res.status, await res.text())
+  } catch (err) {
+    console.error('[mail] send failed', err.message)
+  }
+}
+
 export const authRouter = express.Router()
 
 authRouter.get('/me', (req, res) => {

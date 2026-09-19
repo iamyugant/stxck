@@ -1,13 +1,51 @@
-import { BLOCK_RADIUS, LOGO_BLOCKS } from '../lib/brand.js'
-// Brand mark + company glyphs drawn as SVG (no raster assets).
+// Stxck mark geometry (200×200 box): a stepped bar chart of stacked blocks with a
+// detached "breakout" block above the tallest column. Shared by the logo and the loader.
+const C = 48
+const G = 10
+const X0 = 18
+const Y0 = 200 - 18 - C
+const RADIUS = 9
+
+const at = (col, row, dx = 0, dy = 0) => ({ x: X0 + col * (C + G) + dx, y: Y0 - row * (C + G) - dy, s: C })
+
+// Order matters: the loader lights blocks bottom-left → breakout.
+const BLOCKS = [
+  { ...at(0, 0), tone: 'yellow' },
+  { ...at(1, 0), tone: 'yellow' },
+  { ...at(1, 1), tone: 'yellow' },
+  { ...at(2, 0), tone: 'yellow' },
+  { ...at(2, 1), tone: 'yellow' },
+  { ...at(2, 2, 8, 10), tone: 'sky' },
+]
 
 export function StxckLogo({ size = 32, mono = false }) {
   return (
     <svg width={size} height={size} viewBox="0 0 200 200" aria-label="Stxck" role="img" className="stxck-logo">
-      {LOGO_BLOCKS.map((b, i) => (
-        <rect key={i} x={b.x} y={b.y} width={b.s} height={b.s} rx={BLOCK_RADIUS} fill={mono || b.tone === 'yellow' ? 'var(--yellow)' : 'var(--sky)'} />
+      {BLOCKS.map((b, i) => (
+        <rect key={i} x={b.x} y={b.y} width={b.s} height={b.s} rx={RADIUS} fill={mono || b.tone === 'yellow' ? 'var(--yellow)' : 'var(--sky)'} />
       ))}
     </svg>
+  )
+}
+
+export function LogoLoader({ size = 20, label, still = false }) {
+  return (
+    <span className={`logo-loader ${still ? 'is-still' : ''}`} role={label ? 'status' : undefined} aria-label={label}>
+      <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
+        {BLOCKS.map((b, i) => (
+          <rect
+            key={i}
+            x={b.x}
+            y={b.y}
+            width={b.s}
+            height={b.s}
+            rx={RADIUS}
+            className={b.tone === 'sky' ? 'is-sky' : ''}
+            style={{ animationDelay: `${i * 110}ms` }}
+          />
+        ))}
+      </svg>
+    </span>
   )
 }
 

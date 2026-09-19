@@ -1,6 +1,6 @@
 // Client market data: live via the Stxck server, frozen design snapshot as the offline fallback.
 import { api } from './api.js'
-import { fallbackSeries, INDEXES, PROFILES, SECTORS, sparkSeries } from '../data/fallback.js'
+import { fallbackSeries, INDEXES, PROFILES, SECTORS, sparkSeries } from './fallback.js'
 
 export const TIMEFRAMES = ['1D', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'All']
 
@@ -29,7 +29,6 @@ function snapshotCard(symbol) {
   }
 }
 
-/** Live price card data (quote, intraday points, key stats). Returns null if unknown. */
 export async function getStockCard(symbol) {
   try {
     return await api.stock(symbol)
@@ -99,7 +98,6 @@ export async function getMarket() {
   }
 }
 
-/** Resolve free text ("palantir", "PLTR") to a symbol via server search. */
 export async function resolveSymbol(query) {
   const q = query.trim()
   if (!q) return null

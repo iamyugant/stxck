@@ -56,7 +56,7 @@ export async function chart(symbol, tf = '1D') {
   })
 }
 
-/** Current quote derived from the 1D chart (works without a crumb). */
+// Derived from the 1D chart, which unlike quoteSummary needs no crumb.
 export async function quote(symbol) {
   const { meta, points } = await chart(symbol, '1D')
   const prevClose = meta.chartPreviousClose ?? meta.previousClose
@@ -89,7 +89,7 @@ export async function quote(symbol) {
   }
 }
 
-/** Map with bounded concurrency so screeners don't hammer Yahoo. */
+// Bounded concurrency so the screener doesn't hammer Yahoo. Failures become { error } entries.
 export async function mapLimit(items, limit, fn) {
   const out = new Array(items.length)
   let i = 0
@@ -132,8 +132,6 @@ export async function search(query) {
     }
   })
 }
-
-/* ------------------------------------------------------------ quoteSummary */
 
 let crumbState = null
 
@@ -228,8 +226,6 @@ export async function fundamentals(symbol) {
     }
   })
 }
-
-/* ---------------------------------------------------------------- analytics */
 
 export function seriesStats(points) {
   if (points.length < 2) return null

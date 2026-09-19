@@ -1,5 +1,5 @@
-// Client-side (our server) tools the Claude agent can call. Each returns
-// { result } for the model and optionally { card, sources, action } for the UI.
+// Tools the agent can call. Each returns { result } for the model and optionally
+// { card, sources, action } for the UI.
 import { z } from 'zod'
 import { chart, fundamentals, mapLimit, quote, returnsFrom, search, seriesStats } from './yahoo.js'
 import { simulate } from './simulate.js'
@@ -12,7 +12,7 @@ const Symbol = z
   .regex(/^[\^A-Za-z0-9.=-]+$/, 'Invalid ticker symbol')
   .transform((s) => s.toUpperCase())
 
-export const INDEXES = [
+const INDEXES = [
   { symbol: '^GSPC', name: 'S&P 500' },
   { symbol: '^IXIC', name: 'Nasdaq Composite' },
   { symbol: '^DJI', name: 'Dow Jones' },
@@ -20,7 +20,7 @@ export const INDEXES = [
   { symbol: '^VIX', name: 'VIX' },
 ]
 
-export const SECTOR_ETFS = [
+const SECTOR_ETFS = [
   { symbol: 'XLK', name: 'Technology', icon: 'cpu' },
   { symbol: 'XLF', name: 'Financial', icon: 'landmark' },
   { symbol: 'XLV', name: 'Healthcare', icon: 'hospital' },
@@ -35,7 +35,7 @@ export const SECTOR_ETFS = [
 ]
 
 const round = (n, d = 2) => (n == null || Number.isNaN(n) ? null : Math.round(n * 10 ** d) / 10 ** d)
-const spark = (points, n = 48) => {
+export const spark = (points, n = 48) => {
   const step = Math.max(1, Math.floor(points.length / n))
   return points.filter((_, i) => i % step === 0).map((p) => p.v)
 }
@@ -47,8 +47,6 @@ async function safeFundamentals(symbol) {
     return null
   }
 }
-
-/* ------------------------------------------------------------------ shared */
 
 export async function stockCard(symbol) {
   const [{ quote: q, points }, f, week] = await Promise.all([
@@ -126,8 +124,6 @@ export async function compareRows(symbols, includeBenchmark = true) {
   })
   return rows.filter((r) => !r.error)
 }
-
-/* ------------------------------------------------------------------- tools */
 
 const defs = [
   {
@@ -302,7 +298,7 @@ const defs = [
     schema: z.object({ symbol: Symbol }),
     input_schema: { type: 'object', properties: { symbol: { type: 'string' } }, required: ['symbol'] },
     async run({ symbol }) {
-      await quote(symbol) // validates that the symbol exists
+      await quote(symbol) // throws for unknown tickers
       return { action: { type: 'watch', symbol }, result: { ok: true, symbol } }
     },
   },

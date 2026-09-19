@@ -12,11 +12,10 @@ function getClient() {
   if (!client) client = new Anthropic()
   return client
 }
-/** Drop the cached client so the next request picks up a changed API key. */
+// Called when .env changes so the next request picks up a new API key.
 export function resetClient() {
   client = null
 }
-/** Test seam: swap in a fake client exposing beta.messages.stream(). */
 export function setClientForTesting(fake) {
   client = fake
 }
@@ -40,8 +39,6 @@ How to answer:
 
 const EFFORT = { 'Stxck 2o': 'medium', 'Stxck 2o mini': 'low', 'Stxck Reasoning': 'high' }
 
-/* ------------------------------------------------ in-memory conversation store */
-
 const sessions = new Map()
 const SESSION_TTL = 24 * 3600e3
 
@@ -58,7 +55,7 @@ function saveSession(id, messages) {
   }
 }
 
-/** Rebuild context from the client's visible transcript when the server lost the session. */
+// Used when the server has lost the session (restart or TTL): rebuild context from what the client can see.
 function historyFromTranscript(transcript = []) {
   const out = []
   for (const t of transcript.slice(-20)) {
@@ -89,15 +86,12 @@ function contextBlock(context = {}) {
   return lines.join('\n')
 }
 
-/**
- * Run one user turn. `emit(event, data)` streams UI events:
- *   status, thinking, text, tool, card, sources, action, done, error
- */
+// emit(event, data) events: status, thinking, text, tool, card, sources, action, done, error
 export async function runAgent({ conversationId, userContent, transcript, context, settings, emit, signal }) {
   const stored = getSession(conversationId)
   const history = stored ? stored.messages : historyFromTranscript(transcript)
   const messages = [...history, { role: 'user', content: userContent }]
-  const effort = settings.deep ? 'high' : EFFORT[String(settings.model).replace(/^Nerve/, 'Stxck')] || 'medium'
+  const effort = settings.deep ? 'high' : EFFORT[settings.model] || 'medium'
 
   const tools = [...TOOLS]
   if (settings.web || settings.deep) {

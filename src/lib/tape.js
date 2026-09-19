@@ -1,7 +1,7 @@
 // Public market tape for marketing surfaces (no auth), with a design-snapshot fallback.
 import { useEffect, useState } from 'react'
 import { api } from './api.js'
-import { INDEXES, PROFILES } from '../data/fallback.js'
+import { INDEXES, PROFILES } from './fallback.js'
 
 export const FALLBACK_TAPE = [
   ...INDEXES.map((i) => ({ symbol: i.symbol, name: i.name, price: i.snapshot.price, changePct: ((i.snapshot.price - i.snapshot.prevClose) / i.snapshot.prevClose) * 100 })),

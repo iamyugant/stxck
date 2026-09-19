@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import { FALLBACK_TAPE } from '../../lib/tape.js'
-import { StxckLogo, CompanyLogo } from '../Logos.jsx'
-import { Trend } from '../Icon.jsx'
-import Icon from '../Icon.jsx'
+import { CompanyLogo, StxckLogo } from '../Logos.jsx'
+import Icon, { Trend } from '../Icon.jsx'
 import Sparkline from '../Sparkline.jsx'
 import { Link } from '../../lib/router.js'
 import { fmt, fmtPct } from '../../lib/format.js'
-import { sparkSeries } from '../../data/fallback.js'
+import { sparkSeries } from '../../lib/fallback.js'
 
-/** "Stxck" with the x in brand yellow — the crossing point of the name. */
-export function Wordmark() {
+function Wordmark() {
   return (
     <span className="brandmark__word" aria-label="Stxck">
       St<span className="brandmark__x">x</span>ck
@@ -48,7 +46,6 @@ export function TickerTape({ tape }) {
 
 const QUESTION = 'How did Nvidia do this week?'
 
-/** Self-playing mock of a Stxck conversation, fed by the live tape. */
 export function ProductPreview({ tape, compact = false }) {
   const nvda = tape.find((t) => t.symbol === 'NVDA') || FALLBACK_TAPE.find((t) => t.symbol === 'NVDA')
   const [reduce] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)

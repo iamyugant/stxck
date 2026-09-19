@@ -34,7 +34,7 @@ export function UpgradeModal({ onClose, notify }) {
             <ul>
               {p.features.map((f) => (
                 <li key={f}>
-                  <Icon name="check" size={14} stroke={2} /> {f}
+                  <Icon name="check" size={14} weight="bold" /> {f}
                 </li>
               ))}
             </ul>

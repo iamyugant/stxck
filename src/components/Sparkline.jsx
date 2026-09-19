@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-/** Tiny SVG line. `splitAt` draws values from that index on as a dashed projection. */
+// Values from `splitAt` onward are drawn dashed, as a projection.
 export default function Sparkline({ values, width = 76, height = 34, color, area = false, strokeWidth = 1.2, splitAt }) {
   const id = useId()
   if (!values?.length) return <svg width={width} height={height} />

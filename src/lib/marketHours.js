@@ -40,9 +40,7 @@ function nextOpen(date) {
   return 'soon'
 }
 
-/**
- * { state: 'pre' | 'open' | 'after' | 'closed', label, detail }
- */
+// state: 'pre' | 'open' | 'after' | 'closed'
 export function marketStatus(date = new Date()) {
   const parts = etParts(date)
   const m = parts.minutes

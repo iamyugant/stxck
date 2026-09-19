@@ -3,7 +3,7 @@ import Icon from '../Icon.jsx'
 import { CompanyLogo } from '../Logos.jsx'
 import { api } from '../../lib/api.js'
 import { fmt, fmtCompact, fmtPct } from '../../lib/format.js'
-import { EmptyState, Notice, Skeleton } from '../ui/States.jsx'
+import { EmptyState, Notice, Skeleton } from '../States.jsx'
 
 const COLS = [
   ['symbol', 'Company', 'text'],
@@ -177,7 +177,7 @@ export default function ScreenerView({ watchlist, onToggleWatch, onAnalyze, onCh
                     aria-label={watchlist.includes(r.symbol) ? `Remove ${r.symbol} from watchlist` : `Add ${r.symbol} to watchlist`}
                     onClick={() => onToggleWatch(r.symbol)}
                   >
-                    <Icon name="star" size={15} stroke={1.5} />
+                    <Icon name="star" size={15} />
                   </button>
                   <button className="ghost-btn" aria-label={`Ask Stxck about ${r.symbol}`} onClick={() => onAnalyze(r.symbol)}>
                     <Icon name="sparkles" size={15} />

@@ -1,11 +1,30 @@
 import { memo, useMemo, useState } from 'react'
+import DOMPurify from 'dompurify'
+import { marked } from 'marked'
 import Icon from '../Icon.jsx'
 import AnalysisCard, { StatsGrid } from './AnalysisCard.jsx'
 import { CompareCard, FundamentalsCard, MarketCard, SimulationCard } from './Cards.jsx'
-import { renderMarkdown } from '../../lib/markdown.js'
 import { textOf } from '../../lib/useChat.js'
 import ErrorBoundary from '../ErrorBoundary.jsx'
-import { LogoLoader, Notice, SkeletonText, Spinner } from '../ui/States.jsx'
+import { LogoLoader } from '../Logos.jsx'
+import { Notice, SkeletonText, Spinner } from '../States.jsx'
+
+marked.setOptions({ gfm: true, breaks: false })
+
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A') {
+    node.setAttribute('target', '_blank')
+    node.setAttribute('rel', 'noopener noreferrer')
+  }
+})
+
+// Safe to call on partially streamed text.
+function renderMarkdown(text) {
+  return DOMPurify.sanitize(marked.parse(text || ''), {
+    ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'blockquote', 'h3', 'h4', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'br', 'hr', 'del'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  })
+}
 
 export function UserBubble({ msg }) {
   return (
@@ -93,33 +112,28 @@ const Markdown = memo(function Markdown({ text, caret }) {
 })
 
 function CardPart({ card, ctx }) {
-  switch (card.type) {
-    case 'stock': {
-      const sym = card.quote.symbol
-      return (
-        <div className="reveal stock-part">
-          <AnalysisCard
-            data={card}
-            starred={ctx.watchlist.includes(sym)}
-            onStar={() => ctx.onToggleWatch(sym)}
-            onAlert={() => ctx.onOpen('alert', { symbol: sym, price: card.quote.price })}
-            showChart
-          />
-          <StatsGrid quote={card.quote} stats={card.stats} />
-        </div>
-      )
-    }
-    case 'compare':
-      return <div className="reveal"><CompareCard rows={card.rows} /></div>
-    case 'fundamentals':
-      return <div className="reveal"><FundamentalsCard data={card.data} /></div>
-    case 'simulation':
-      return <div className="reveal"><SimulationCard data={card.data} /></div>
-    case 'market':
-      return <div className="reveal"><MarketCard card={card} /></div>
-    default:
-      return null
+  if (card.type === 'stock') {
+    const sym = card.quote.symbol
+    return (
+      <div className="reveal stock-part">
+        <AnalysisCard
+          data={card}
+          starred={ctx.watchlist.includes(sym)}
+          onStar={() => ctx.onToggleWatch(sym)}
+          onAlert={() => ctx.onOpen('alert', { symbol: sym, price: card.quote.price })}
+          showChart
+        />
+        <StatsGrid quote={card.quote} stats={card.stats} />
+      </div>
+    )
   }
+  const body = {
+    compare: () => <CompareCard rows={card.rows} />,
+    fundamentals: () => <FundamentalsCard data={card.data} />,
+    simulation: () => <SimulationCard data={card.data} />,
+    market: () => <MarketCard card={card} />,
+  }[card.type]
+  return body ? <div className="reveal">{body()}</div> : null
 }
 
 function Feedback({ text, sources, notify }) {
@@ -215,7 +229,7 @@ function StockActions({ card, ctx }) {
   )
 }
 
-/** Next questions that deepen an analysis without repeating the action row. */
+// Follow-ups go deeper than the action row instead of repeating it.
 function followUpsFor(card) {
   const sym = card.quote.symbol
   const name = card.profile.short || sym

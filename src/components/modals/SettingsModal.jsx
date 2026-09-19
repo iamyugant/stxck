@@ -4,13 +4,14 @@ import Icon from '../Icon.jsx'
 import { clearAll, load } from '../../lib/storage.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { navigate } from '../../lib/router.js'
-import { Avatar } from '../shell/Account.jsx'
+import { downloadFile } from '../../lib/exportChat.js'
+import { Avatar } from '../shell/Nav.jsx'
 import { PasswordField, TextField } from '../auth/Fields.jsx'
 
 function AccountSection({ user, onLogout, notify }) {
   const { update, changePassword, deleteAccount } = useAuth()
   const [name, setName] = useState(user.name)
-  const [mode, setMode] = useState(null) // 'password' | 'delete'
+  const [mode, setMode] = useState(null)
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
   const [errors, setErrors] = useState({})
   const [busy, setBusy] = useState(false)
@@ -116,10 +117,7 @@ export default function SettingsModal({ user, onLogout, ai, prefs, setPrefs, onC
       portfolio: load('portfolio', null),
       alerts: load('alerts', []),
     }
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
-    const a = Object.assign(document.createElement('a'), { href: url, download: `stxck-export-${Date.now()}.json` })
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadFile(`stxck-export-${Date.now()}.json`, JSON.stringify(data, null, 2), 'application/json')
   }
 
   const danger = {

@@ -10,6 +10,9 @@ export function fmt(n, digits = 2) {
 
 export const fmtSigned = (n, digits = 2) => (n >= 0 ? '+' : '-') + fmt(Math.abs(n), digits)
 export const fmtPct = (n, digits = 2) => fmtSigned(n, digits) + '%'
+export const fmtUsdSigned = (n) => (n >= 0 ? '+' : '-') + '$' + fmt(Math.abs(n))
+/** Share counts: whole numbers stay whole, fractional ones show up to 4 places without trailing zeros. */
+export const fmtQty = (q) => fmt(q, q % 1 ? 4 : 0).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
 
 export function fmtCompact(n) {
   if (n == null || Number.isNaN(n)) return '—'

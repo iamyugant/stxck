@@ -3,7 +3,7 @@ import Modal from '../Modal.jsx'
 import SymbolSearch from '../SymbolSearch.jsx'
 import { SimulationCard } from '../chat/Cards.jsx'
 import { api } from '../../lib/api.js'
-import { EmptyState, Notice, Skeleton } from '../ui/States.jsx'
+import { EmptyState, Notice, Skeleton } from '../States.jsx'
 
 export default function SimulateModal({ initialSymbol, onClose, onAsk }) {
   const [symbol, setSymbol] = useState(initialSymbol || '')

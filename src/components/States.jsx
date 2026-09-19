@@ -1,27 +1,4 @@
-import Icon from '../Icon.jsx'
-import { BLOCK_RADIUS, LOGO_BLOCKS } from '../../lib/brand.js'
-
-/** Brand loader: the Stxck blocks build up bottom-left to the breakout, then reset. */
-export function LogoLoader({ size = 20, label, still = false }) {
-  return (
-    <span className={`logo-loader ${still ? 'is-still' : ''}`} role={label ? 'status' : undefined} aria-label={label}>
-      <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-        {LOGO_BLOCKS.map((b, i) => (
-          <rect
-            key={i}
-            x={b.x}
-            y={b.y}
-            width={b.s}
-            height={b.s}
-            rx={BLOCK_RADIUS}
-            className={b.tone === 'sky' ? 'is-sky' : ''}
-            style={{ animationDelay: `${i * 110}ms` }}
-          />
-        ))}
-      </svg>
-    </span>
-  )
-}
+import Icon from './Icon.jsx'
 
 export function Spinner({ size = 16, tone }) {
   return <span className={`spin ${tone ? `spin--${tone}` : ''}`} style={{ width: size, height: size }} aria-hidden="true" />
@@ -29,7 +6,6 @@ export function Spinner({ size = 16, tone }) {
 
 const TONE_ICON = { error: 'alert', warn: 'alert', info: 'info', success: 'checkCircle' }
 
-/** Inline message block: error / warn / info / success. */
 export function Notice({ tone = 'error', title, children, action, compact = false }) {
   return (
     <div className={`notice-box notice-box--${tone} ${compact ? 'is-compact' : ''}`} role={tone === 'error' ? 'alert' : 'status'}>
@@ -43,7 +19,6 @@ export function Notice({ tone = 'error', title, children, action, compact = fals
   )
 }
 
-/** Centered empty state with a quiet icon, one line of guidance and an optional action. */
 export function EmptyState({ icon = 'sparkles', title, body, action, size = 'md' }) {
   return (
     <div className={`empty empty--${size}`}>
@@ -71,7 +46,6 @@ export function SkeletonText({ lines = 3, widths = ['92%', '84%', '58%'] }) {
   )
 }
 
-/** Card-shaped placeholder for the price card while data loads. */
 export function StockCardSkeleton() {
   return (
     <div className="card stock-skel" aria-hidden="true">

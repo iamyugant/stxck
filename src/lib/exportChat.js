@@ -32,11 +32,14 @@ export function chatToMarkdown(chat) {
   return lines.join('\n').replace(/\n{3,}/g, '\n\n')
 }
 
-export function downloadChat(chat) {
-  const blob = new Blob([chatToMarkdown(chat)], { type: 'text/markdown' })
-  const url = URL.createObjectURL(blob)
-  const slug = chat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'chat'
-  Object.assign(document.createElement('a'), { href: url, download: `stxck-${slug}.md` }).click()
+export function downloadFile(name, content, type) {
+  const url = URL.createObjectURL(new Blob([content], { type }))
+  Object.assign(document.createElement('a'), { href: url, download: name }).click()
   URL.revokeObjectURL(url)
+}
+
+export function downloadChat(chat) {
+  const slug = chat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'chat'
+  downloadFile(`stxck-${slug}.md`, chatToMarkdown(chat), 'text/markdown')
 }
 

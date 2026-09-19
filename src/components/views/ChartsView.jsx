@@ -5,7 +5,7 @@ import AnalysisCard, { StatsGrid } from '../chat/AnalysisCard.jsx'
 import { FundamentalsCard } from '../chat/Cards.jsx'
 import { api } from '../../lib/api.js'
 import { getStockCard } from '../../lib/market.js'
-import { EmptyState, StockCardSkeleton } from '../ui/States.jsx'
+import { EmptyState, StockCardSkeleton } from '../States.jsx'
 
 export default function ChartsView({ symbol, onSymbol, watchlist, onToggleWatch, onOpen, onAnalyze }) {
   const [card, setCard] = useState(null)

@@ -142,18 +142,14 @@ const MAP = {
 
 const FILLED = new Set(['bolt', 'stop'])
 
-/**
- * <Icon name size weight />. `stroke` is accepted for backwards compatibility:
- * values ≥ 2 map to the bold weight.
- */
-export default function Icon({ name, size = 18, weight, stroke, className, style, mirrored }) {
+// Small glyphs read too thin at the regular weight.
+export default function Icon({ name, size = 18, weight, className, style, mirrored }) {
   const Glyph = MAP[name]
   if (!Glyph) return null
-  const w = weight || (FILLED.has(name) ? 'fill' : stroke >= 2 || size <= 13 ? 'bold' : 'regular')
+  const w = weight || (FILLED.has(name) ? 'fill' : size <= 13 ? 'bold' : 'regular')
   return <Glyph size={size} weight={w} className={className} style={style} mirrored={mirrored} aria-hidden="true" focusable="false" />
 }
 
-/** Direction glyph for price moves: a small arrow, no badge. */
 export function Trend({ up, size = 12 }) {
   const Glyph = up ? ArrowUpRight : ArrowDownRight
   return <Glyph size={size} weight="bold" className={`trend ${up ? 'is-up' : 'is-down'}`} aria-hidden="true" />

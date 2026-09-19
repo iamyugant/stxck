@@ -219,7 +219,7 @@ Without an email provider, reset links are printed to the server log. In develop
 ```
 ┌────────────────────────── Browser (React SPA) ───────────────────────────┐
 │ Root router: / · /login · /signup · /forgot · /reset · /welcome · /app    │
-│ App shell: TopBar · IconRail · Chat | Screener | Charts | Portfolio |     │
+│ App shell: TopBar · Nav rail · Chat | Screener | Charts | Portfolio |     │
 │            History · Insight/Summary rail · Modals · ⌘K palette           │
 │ State: useChat (SSE, per-frame batching) · useAccount (portfolio, alerts, │
 │        watchlist, equity history) → localStorage, scoped per user          │
@@ -235,27 +235,26 @@ Without an email provider, reset links are printed to the server log. In develop
 
 ```
 server/
-  index.js      Middleware, auth gate, REST routes, SSE chat, static hosting, .env hot reload
-  auth.js       Users, scrypt, sessions, reset tokens, account routes
-  mailer.js     Resend or console
+  index.js      Middleware, auth gate, REST routes, screener universe, SSE chat, static hosting, .env hot reload
+  auth.js       Users, scrypt, sessions, reset tokens, reset email (Resend or console), account routes
   agent.js      Agent loop, system prompt, context block, conversation memory
   tools.js      11 tool definitions + executors → { result, card, sources, action }
   yahoo.js      chart · quote · search/news · quoteSummary (crumb) · analytics · cache
   simulate.js   Backtest + projection
-  universe.js   Screener universe
 src/
   Root.jsx · App.jsx · main.jsx
-  lib/          api · auth · router · storage · useChat · useAccount · trading · analyst (demo)
-                marketHours · exportChat · format · brand · keys · online · tape · markdown
+  lib/          api · auth · router · storage · hooks · useChat · useAccount · trading · analyst (demo)
+                market · fallback (offline snapshot) · marketHours · exportChat · format · tape
   components/
-    shell/      TopBar · IconRail · Composer · AttachMenu · Account (menu, drawer) · CommandPalette
-    chat/       Messages · AnalysisCard · PriceChart · Cards (compare, fundamentals, sim, market)
-    rails/      InsightRail · SummaryRail · WatchlistCard · PredictionCard · SectorList
+                Icon · Logos (mark, loader, company logos) · States (Notice, EmptyState, Skeleton, Spinner)
+                Live (Flash, MarketStatus, OfflineBanner) · Modal · Sparkline · SymbolSearch · ErrorBoundary
+    shell/      TopBar · Nav (icon rail, account menu, mobile drawer) · Composer · CommandPalette · PixelField
+    chat/       Hero · Messages · AnalysisCard (with price chart) · Cards (compare, fundamentals, sim, market)
+    rails/      InsightRail (with AI trend card) · SummaryRail · WatchlistCard · SectorList
     views/      Screener · Charts · Portfolio · History
     modals/     TradeTicket · Simulate · Alert · Settings · Upgrade/Cookies
     landing/    Landing · Brand (wordmark, tape, product preview)
     auth/       AuthScreens · Fields · Welcome (onboarding)
-    ui/         States (Notice, EmptyState, Skeleton, LogoLoader, Spinner) · Live (Flash, MarketStatus)
   styles/       tokens.css · base.css · app.css · site.css
 tests/          agent · auth (real server) · logic (trading, analytics, market hours, export, tools)
 docs/           banner.svg · screenshots/
@@ -373,7 +372,7 @@ curl -b jar "http://localhost:5173/api/quotes?symbols=NVDA,AAPL"
 
 ## Design system
 
-**Brand.** The mark is a stepped bar chart of rounded pixel blocks with a detached Sky "breakout" block: a stack that's going up. The same geometry drives the loading animation (`src/lib/brand.js`). The wordmark is **St<span>x</span>ck** with the x in brand yellow.
+**Brand.** The mark is a stepped bar chart of rounded pixel blocks with a detached Sky "breakout" block: a stack that's going up. The same geometry drives the loading animation (`src/components/Logos.jsx`). The wordmark is **St<span>x</span>ck** with the x in brand yellow.
 
 | Token | Value | Use |
 | --- | --- | --- |

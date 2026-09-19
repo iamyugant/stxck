@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from 'react'
 import Icon from '../Icon.jsx'
 import { textOf } from '../../lib/useChat.js'
 import { downloadChat } from '../../lib/exportChat.js'
-import { EmptyState } from '../ui/States.jsx'
+import { EmptyState } from '../States.jsx'
 
 function bucket(ts) {
   const day = 86400e3
@@ -70,39 +70,43 @@ export default function HistoryView({ chats, activeId, onOpen, onDelete, onRenam
           const showGroup = i === 0 || bucket(list[i - 1].updatedAt) !== group
           return (
             <Fragment key={c.id}>
-            {showGroup && <li className="history-list__group" aria-hidden="true">{group}</li>}
-            <li className={c.id === activeId ? "is-active" : ""}>
-              {editing === c.id ? (
-                <form
-                  className="history-list__edit"
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    const v = new FormData(e.currentTarget).get('title').trim()
-                    if (v) onRename(c.id, v)
-                    setEditing(null)
-                  }}
-                >
-                  <input name="title" defaultValue={c.title} autoFocus className="input" onBlur={(e) => e.currentTarget.form.requestSubmit()} />
-                </form>
-              ) : (
-                <button className="history-list__open" onClick={() => onOpen(c.id)}>
-                  <span className="history-list__title">{c.title}</span>
-                  <span className="history-list__preview">{last ? textOf(last).replace(/[*#_`>|-]/g, '').slice(0, 140) : ''}</span>
-                </button>
+              {showGroup && (
+                <li className="history-list__group" aria-hidden="true">
+                  {group}
+                </li>
               )}
-              <span className="history-list__meta">{when(c.updatedAt)}</span>
-              <span className="history-list__actions">
-                <button className="ghost-btn" aria-label="Rename" onClick={() => setEditing(c.id)}>
-                  <Icon name="pencil" size={14} />
-                </button>
-                <button className="ghost-btn" aria-label="Export as Markdown" data-tip="Export" onClick={() => downloadChat(c)}>
-                  <Icon name="download" size={15} />
-                </button>
-                <button className="ghost-btn" aria-label="Delete conversation" onClick={() => onDelete(c.id)}>
-                  <Icon name="trash" size={15} />
-                </button>
-              </span>
-            </li>
+              <li className={c.id === activeId ? 'is-active' : ''}>
+                {editing === c.id ? (
+                  <form
+                    className="history-list__edit"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      const v = new FormData(e.currentTarget).get('title').trim()
+                      if (v) onRename(c.id, v)
+                      setEditing(null)
+                    }}
+                  >
+                    <input name="title" defaultValue={c.title} autoFocus className="input" onBlur={(e) => e.currentTarget.form.requestSubmit()} />
+                  </form>
+                ) : (
+                  <button className="history-list__open" onClick={() => onOpen(c.id)}>
+                    <span className="history-list__title">{c.title}</span>
+                    <span className="history-list__preview">{last ? textOf(last).replace(/[*#_`>|-]/g, '').slice(0, 140) : ''}</span>
+                  </button>
+                )}
+                <span className="history-list__meta">{when(c.updatedAt)}</span>
+                <span className="history-list__actions">
+                  <button className="ghost-btn" aria-label="Rename" onClick={() => setEditing(c.id)}>
+                    <Icon name="pencil" size={14} />
+                  </button>
+                  <button className="ghost-btn" aria-label="Export as Markdown" data-tip="Export" onClick={() => downloadChat(c)}>
+                    <Icon name="download" size={15} />
+                  </button>
+                  <button className="ghost-btn" aria-label="Delete conversation" onClick={() => onDelete(c.id)}>
+                    <Icon name="trash" size={15} />
+                  </button>
+                </span>
+              </li>
             </Fragment>
           )
         })}

@@ -3,10 +3,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { api } from './api.js'
 import { uid, usePersistentState } from './storage.js'
 import { fmt } from './format.js'
-
 import { applyTrade, freshPortfolio } from './trading.js'
-
-export { STARTING_CASH } from './trading.js'
 
 export function useAccount({ notify }) {
   const [watchlist, setWatchlist] = usePersistentState('watchlist', ['GOOGL', 'AMZN', 'NVDA'])
@@ -30,7 +27,6 @@ export function useAccount({ notify }) {
     [setNotifications],
   )
 
-  /* ---------------------------------------------------------------- watchlist */
   const toggleWatch = useCallback(
     (symbol, force) => {
       const has = watchlist.includes(symbol)
@@ -42,22 +38,20 @@ export function useAccount({ notify }) {
     [watchlist, setWatchlist, notify],
   )
 
-  /* ------------------------------------------------------------------ trading */
   const executeTrade = useCallback(
     ({ symbol, side, quantity, price }) => {
       const res = applyTrade(portfolio, { symbol, side, quantity, price }, Date.now(), uid('t'))
       if (!res.ok) return res
       const qty = Number(quantity)
-      const cost = qty * price
       setPortfolio(res.portfolio)
-      push(`Paper ${side === 'buy' ? 'bought' : 'sold'} ${qty} ${symbol}`, `Filled at $${fmt(price)} · $${fmt(cost)}`)
+      push(`Paper ${side === 'buy' ? 'bought' : 'sold'} ${qty} ${symbol}`, `Filled at $${fmt(price)} · $${fmt(qty * price)}`)
       notify(`${side === 'buy' ? 'Bought' : 'Sold'} ${qty} ${symbol} at $${fmt(price)}`)
       return { ok: true }
     },
     [portfolio, setPortfolio, push, notify],
   )
 
-  /** Keep one equity point per calendar day (latest wins) for the performance chart. */
+  // One point per calendar day; the latest reading wins.
   const recordEquity = useCallback(
     (value) => {
       if (!(value > 0)) return
@@ -77,7 +71,6 @@ export function useAccount({ notify }) {
     notify('Paper portfolio reset to $100,000')
   }, [setPortfolio, setEquityHistory, notify])
 
-  /* ------------------------------------------------------------------- alerts */
   const addAlert = useCallback(
     ({ symbol, direction, price }) => {
       setAlerts((all) => [{ id: uid('a'), symbol, direction, price: Number(price), createdAt: Date.now(), triggered: false }, ...all])
@@ -88,7 +81,6 @@ export function useAccount({ notify }) {
   )
   const removeAlert = useCallback((id) => setAlerts((all) => all.filter((a) => a.id !== id)), [setAlerts])
 
-  // Poll active alerts every 60s and fire the ones that crossed.
   const alertsRef = useRef(alerts)
   useEffect(() => {
     alertsRef.current = alerts
@@ -131,7 +123,6 @@ export function useAccount({ notify }) {
 
   return {
     watchlist,
-    setWatchlist,
     toggleWatch,
     portfolio,
     executeTrade,
@@ -143,6 +134,5 @@ export function useAccount({ notify }) {
     removeAlert,
     notifications,
     setNotifications,
-    push,
   }
 }

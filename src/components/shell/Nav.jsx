@@ -1,7 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Icon from '../Icon.jsx'
 import { StxckLogo } from '../Logos.jsx'
-import { NAV_ITEMS } from './nav.js'
+import { useDismiss } from '../../lib/hooks.js'
+
+const NAV_ITEMS = [
+  { id: 'new', icon: 'pencil', label: 'New chat' },
+  { id: 'chat', icon: 'home', label: 'Home' },
+  { id: 'screener', icon: 'grid', label: 'Screener' },
+  { id: 'charts', icon: 'bars', label: 'Charts' },
+  { id: 'portfolio', icon: 'briefcase', label: 'Paper portfolio' },
+  { id: 'history', icon: 'clock', label: 'Chat history' },
+]
 
 function initials(name = '') {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -17,21 +26,11 @@ export function Avatar({ user, size = 40 }) {
   )
 }
 
-/** Avatar button + popover with profile, settings and sign out (desktop icon rail). */
 export function AccountButton({ user, onSettings, onLogout, onUpgrade }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e) => !ref.current?.contains(e.target) && setOpen(false)
-    const onKey = (e) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss(open, close, ref)
   return (
     <div className="account-anchor" ref={ref}>
       <button className="avatar-btn" aria-label="Account menu" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen((o) => !o)}>
@@ -46,12 +45,12 @@ export function AccountButton({ user, onSettings, onLogout, onUpgrade }) {
               <small>{user.email}</small>
             </span>
           </div>
-          <button role="menuitem" className="popover__item popover__item--icon" onClick={() => (setOpen(false), onSettings())}>
+          <button role="menuitem" className="popover__item popover__item--icon" onClick={() => (close(), onSettings())}>
             <span>
               <Icon name="settings" size={16} /> Settings
             </span>
           </button>
-          <button role="menuitem" className="popover__item popover__item--icon" onClick={() => (setOpen(false), onUpgrade())}>
+          <button role="menuitem" className="popover__item popover__item--icon" onClick={() => (close(), onUpgrade())}>
             <span>
               <Icon name="bolt" size={16} /> Upgrade to Pro
             </span>
@@ -68,7 +67,6 @@ export function AccountButton({ user, onSettings, onLogout, onUpgrade }) {
   )
 }
 
-/** Mobile navigation drawer: sections, recent chats, account. */
 export function MobileDrawer({ open, onClose, user, active, onNav, chats, onOpenChat, onSettings, onLogout }) {
   const panelRef = useRef(null)
   useEffect(() => {
@@ -81,7 +79,7 @@ export function MobileDrawer({ open, onClose, user, active, onNav, chats, onOpen
 
   const recent = [...chats].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8)
   return (
-    <div className={`drawer ${open ? 'is-open' : ''}`} aria-hidden={!open} inert={!open ? '' : undefined}>
+    <div className={`drawer ${open ? 'is-open' : ''}`} aria-hidden={!open} inert={!open}>
       <button className="drawer__scrim" aria-label="Close menu" tabIndex={-1} onClick={onClose} />
       <nav className="drawer__panel" ref={panelRef} aria-label="Main menu">
         <div className="drawer__head">
@@ -136,5 +134,32 @@ export function MobileDrawer({ open, onClose, user, active, onNav, chats, onOpen
         </div>
       </nav>
     </div>
+  )
+}
+
+export function IconRail({ active, onSelect, account }) {
+  return (
+    <nav className="icon-rail" aria-label="Primary">
+      <div className="icon-rail__group">
+        {NAV_ITEMS.map((it) => (
+          <button
+            key={it.id}
+            className={`rail-btn ${active === it.id ? 'is-active' : ''}`}
+            onClick={() => onSelect(it.id)}
+            aria-label={it.label}
+            aria-current={active === it.id ? 'page' : undefined}
+            data-tip={it.label}
+          >
+            <Icon name={it.icon} size={20} weight={active === it.id ? 'fill' : 'regular'} />
+          </button>
+        ))}
+      </div>
+      <div className="icon-rail__group">
+        <button className="rail-btn" aria-label="Settings" data-tip="Settings" onClick={() => onSelect('settings')}>
+          <Icon name="settings" size={20} />
+        </button>
+        {account}
+      </div>
+    </nav>
   )
 }

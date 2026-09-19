@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import Icon from '../Icon.jsx'
 import { StxckLogo } from '../Logos.jsx'
-import { MarketStatus } from '../ui/Live.jsx'
+import { MarketStatus } from '../Live.jsx'
+import { useDismiss } from '../../lib/hooks.js'
 
 const MODELS = [
   { id: 'Stxck 2o', note: 'Fast, everyday analysis' },
@@ -17,28 +18,14 @@ function ago(ts) {
   return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`
 }
 
-function useOutside(ref, open, close) {
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e) => ref.current && !ref.current.contains(e.target) && close()
-    const onKey = (e) => e.key === 'Escape' && close()
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [ref, open, close])
-}
-
 export default function TopBar({ model, onModel, railOpen, onToggleRail, onUpgrade, onHome, ai, notifications, onReadAll, onClearNotifications, onOpenSettings, onOpenDrawer, onOpenPalette, shortcut }) {
   const [menu, setMenu] = useState(null)
   const unread = notifications.some((n) => !n.read)
   const modelRef = useRef(null)
   const bellRef = useRef(null)
-  const close = () => setMenu(null)
-  useOutside(modelRef, menu === 'model', close)
-  useOutside(bellRef, menu === 'bell', close)
+  const close = useCallback(() => setMenu(null), [])
+  useDismiss(menu === 'model', close, modelRef)
+  useDismiss(menu === 'bell', close, bellRef)
 
   return (
     <header className="topbar">
@@ -57,7 +44,7 @@ export default function TopBar({ model, onModel, railOpen, onToggleRail, onUpgra
           aria-expanded={menu === 'model'}
         >
           {model}
-          <Icon name="chevronDown" size={14} stroke={2} />
+          <Icon name="chevronDown" size={14} weight="bold" />
         </button>
         {ai && !ai.enabled && (
           <button className="demo-badge" onClick={onOpenSettings} title="AI key not configured. Click for details.">
@@ -81,7 +68,7 @@ export default function TopBar({ model, onModel, railOpen, onToggleRail, onUpgra
                   <span className="popover__title">{m.id}</span>
                   <span className="popover__note">{m.note}</span>
                 </span>
-                {m.id === model && <Icon name="check" size={15} stroke={2} />}
+                {m.id === model && <Icon name="check" size={15} weight="bold" />}
               </button>
             ))}
           </div>

@@ -1,4 +1,3 @@
-// Thin client for the Stxck server (server/index.js).
 const cache = new Map()
 
 async function request(path, { ttl = 0, ...init } = {}) {
@@ -33,10 +32,7 @@ export const api = {
   simulate: (body) => request('/api/simulate', { method: 'POST', body: JSON.stringify(body) }),
 }
 
-/**
- * POST /api/chat and dispatch server-sent events to `onEvent(type, data)`.
- * Resolves when the stream ends; rejects with `.demo = true` if AI isn't configured.
- */
+// Rejects with `.demo = true` when the server has no AI key, so the caller can fall back to demo mode.
 export async function streamChat(body, onEvent, signal) {
   const res = await fetch('/api/chat', {
     method: 'POST',

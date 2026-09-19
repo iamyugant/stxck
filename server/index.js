@@ -5,9 +5,8 @@ import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import { aiEnabled, MODEL, resetClient, runAgent } from './agent.js'
 import { chart, fundamentals, mapLimit, quote, RANGES, search } from './yahoo.js'
-import { compareRows, marketOverview, shortName, stockCard } from './tools.js'
+import { compareRows, marketOverview, shortName, spark, stockCard } from './tools.js'
 import { simulate } from './simulate.js'
-import { SCREENER_UNIVERSE } from './universe.js'
 import { attachUser, authRouter, requireAuth, sameOrigin } from './auth.js'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -52,8 +51,13 @@ const wrap = (fn) => (req, res) =>
   fn(req, res).catch((err) => {
     res.status(err.status && err.status < 500 ? err.status : 502).json({ error: err.message || 'Upstream error' })
   })
+const bySymbol = (fn) =>
+  wrap(async (req, res) => {
+    const s = sym(req.params.symbol)
+    if (!s) return res.status(400).json({ error: 'Invalid symbol' })
+    res.json(await fn(s))
+  })
 
-/* ------------------------------------------------------------- rate limit */
 const hits = new Map()
 function rateLimit(limit, windowMs) {
   return (req, res, next) => {
@@ -74,7 +78,6 @@ setInterval(() => {
   for (const [k, v] of hits) if (!v.some((t) => now - t < 600e3)) hits.delete(k)
 }, 60e3).unref()
 
-/* ------------------------------------------------------------ auth gate */
 app.use('/api', attachUser, sameOrigin)
 app.get('/api/health', (req, res) => res.json({ ok: true, ai: aiEnabled(), model: aiEnabled() ? MODEL : null }))
 app.use('/api/auth', rateLimit(60, 60e3), authRouter)
@@ -97,8 +100,6 @@ app.get(
 
 app.use('/api', (req, res, next) => (req.path === '/' || req.path.startsWith('/public') ? next() : requireAuth(req, res, next)))
 
-/* ------------------------------------------------------------------ data */
-
 app.get(
   '/api/search',
   rateLimit(120, 60e3),
@@ -109,25 +110,8 @@ app.get(
   }),
 )
 
-app.get(
-  '/api/stock/:symbol',
-  rateLimit(120, 60e3),
-  wrap(async (req, res) => {
-    const s = sym(req.params.symbol)
-    if (!s) return res.status(400).json({ error: 'Invalid symbol' })
-    res.json(await stockCard(s))
-  }),
-)
-
-app.get(
-  '/api/fundamentals/:symbol',
-  rateLimit(120, 60e3),
-  wrap(async (req, res) => {
-    const s = sym(req.params.symbol)
-    if (!s) return res.status(400).json({ error: 'Invalid symbol' })
-    res.json(await fundamentals(s))
-  }),
-)
+app.get('/api/stock/:symbol', rateLimit(120, 60e3), bySymbol(stockCard))
+app.get('/api/fundamentals/:symbol', rateLimit(120, 60e3), bySymbol(fundamentals))
 
 app.get(
   '/api/series/:symbol',
@@ -153,7 +137,6 @@ app.get(
       .slice(0, 60)
     const out = await mapLimit(list, 6, async (s) => {
       const { quote: q, points } = await quote(s)
-      const step = Math.max(1, Math.floor(points.length / 48))
       return {
         symbol: s,
         name: shortName(q.name),
@@ -162,7 +145,7 @@ app.get(
         change: q.change,
         changePct: q.changePct,
         volume: q.volume,
-        spark: points.filter((_, i) => i % step === 0).map((p) => p.v),
+        spark: spark(points),
         live: true,
       }
     })
@@ -196,6 +179,24 @@ app.post(
   }),
 )
 
+// Large caps with static, GICS-style sector labels.
+const SCREENER_UNIVERSE = [
+  ['AAPL', 'Apple', 'Technology'], ['MSFT', 'Microsoft', 'Technology'], ['NVDA', 'Nvidia', 'Technology'],
+  ['AVGO', 'Broadcom', 'Technology'], ['ORCL', 'Oracle', 'Technology'], ['AMD', 'AMD', 'Technology'],
+  ['CRM', 'Salesforce', 'Technology'], ['ADBE', 'Adobe', 'Technology'], ['INTC', 'Intel', 'Technology'],
+  ['GOOGL', 'Alphabet', 'Communication'], ['META', 'Meta Platforms', 'Communication'], ['NFLX', 'Netflix', 'Communication'],
+  ['DIS', 'Disney', 'Communication'], ['AMZN', 'Amazon', 'Consumer Disc.'], ['TSLA', 'Tesla', 'Consumer Disc.'],
+  ['HD', 'Home Depot', 'Consumer Disc.'], ['MCD', "McDonald's", 'Consumer Disc.'], ['NKE', 'Nike', 'Consumer Disc.'],
+  ['WMT', 'Walmart', 'Consumer Staples'], ['COST', 'Costco', 'Consumer Staples'], ['PG', 'Procter & Gamble', 'Consumer Staples'],
+  ['KO', 'Coca-Cola', 'Consumer Staples'], ['JPM', 'JPMorgan Chase', 'Financial'], ['BAC', 'Bank of America', 'Financial'],
+  ['V', 'Visa', 'Financial'], ['MA', 'Mastercard', 'Financial'], ['GS', 'Goldman Sachs', 'Financial'],
+  ['BRK-B', 'Berkshire Hathaway', 'Financial'], ['LLY', 'Eli Lilly', 'Healthcare'], ['UNH', 'UnitedHealth', 'Healthcare'],
+  ['JNJ', 'Johnson & Johnson', 'Healthcare'], ['ABBV', 'AbbVie', 'Healthcare'], ['MRK', 'Merck', 'Healthcare'],
+  ['PFE', 'Pfizer', 'Healthcare'], ['XOM', 'Exxon Mobil', 'Energy'], ['CVX', 'Chevron', 'Energy'],
+  ['CAT', 'Caterpillar', 'Industrials'], ['GE', 'GE Aerospace', 'Industrials'], ['BA', 'Boeing', 'Industrials'],
+  ['NEE', 'NextEra Energy', 'Utilities'], ['PLD', 'Prologis', 'Real Estate'], ['LIN', 'Linde', 'Materials'],
+].map(([symbol, name, sector]) => ({ symbol, name, sector }))
+
 app.get(
   '/api/screener',
   rateLimit(30, 60e3),
@@ -219,7 +220,6 @@ app.get(
   }),
 )
 
-/* ------------------------------------------------------------------- chat */
 const ALLOWED_MEDIA = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'application/pdf'])
 
 function buildUserContent(text, files = []) {
@@ -298,7 +298,6 @@ app.post('/api/chat', rateLimit(20, 5 * 60e3), async (req, res) => {
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }))
 
-/* --------------------------------------------------------------- frontend */
 if (isProd) {
   const dist = path.join(root, 'dist')
   app.use(express.static(dist, { index: false, maxAge: '1y', immutable: true }))
