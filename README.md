@@ -18,6 +18,9 @@
 </p>
 
 <p align="center">
+  <a href="https://stxck.onrender.com"><b>▶ Open the live app — stxck.onrender.com</b></a>
+  <br /><sub>Free hosting: the first visit after a quiet spell takes about 30 seconds to wake up.</sub>
+  <br /><br />
   <a href="https://render.com/deploy?repo=https://github.com/iamyugant/stxck"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" /></a>
 </p>
 
