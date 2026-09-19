@@ -17,6 +17,10 @@
   <img alt="Tests" src="https://img.shields.io/badge/tests-17%20passing-3ddc97?style=flat-square&labelColor=101828" />
 </p>
 
+<p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/iamyugant/stxck"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" /></a>
+</p>
+
 > **Research and education only — not investment advice.** Paper trades use virtual money; no brokerage is connected. Market data may be delayed.
 
 ---
@@ -421,6 +425,12 @@ Lint with `npm run lint` (oxlint).
 ---
 
 ## Deployment
+
+### Render (one click, free)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/iamyugant/stxck)
+
+`render.yaml` builds the Dockerfile as a free web service with a generated `SESSION_SECRET`. Add `ANTHROPIC_API_KEY` under **Environment** to switch off demo mode. On the free plan the service sleeps after 15 idle minutes (the first request takes about 30 seconds to wake it) and has no persistent disk, so accounts reset on each redeploy. Attach a disk at `/app/data` on a paid plan to keep them.
 
 ### Docker
 
